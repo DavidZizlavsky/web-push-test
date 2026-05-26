@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  tests:
+    name: PHP tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: intl, mbstring, json, mysql, mysqli, pdo_mysql, sqlite3, pdo_sqlite
+          coverage: none
+
+      - name: Validate composer files
+        run: composer validate --strict
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Copy env file
+        run: cp env .env
+
+      - name: Set CI environment
+        run: echo "CI_ENVIRONMENT = testing" >> .env
+
+      - name: Run PHPUnit
+        run: vendor/bin/phpunit
